@@ -4,7 +4,7 @@ class RuleBasedClassifier:
     def __init__(self):
         self.category_rules: Dict[str, List[str]] = {
             "Food": [
-                "pizza", "burger", "restaurant", "cafe", "meal", "food", "dinner", "lunch", "breakfast", "hotel", "eat", "pav bhaji", "dominos", "mcdonalds", "kfc", "subway", "food court", "dining"
+                "pizza", "burger", "restaurant", "cafe", "meal", "food", "dinner", "lunch", "breakfast", "eat", "pav bhaji", "dominos", "mcdonalds", "kfc", "subway", "food court", "dining"
             ],
               "Transport": [
                 "uber", "ola", "taxi", "bus", "train", "metro", "fuel",
@@ -57,7 +57,7 @@ class RuleBasedClassifier:
         for category, keywords in self.category_rules.items():
             for keyword in keywords:
                 if keyword in expense_lower:
-                    # Calculate match score based on keyword length and index/position
+                    # Calculate match score based on keyword length and position
                     match_score = len(keyword) * 10
                     matches.append((category, match_score))
     
