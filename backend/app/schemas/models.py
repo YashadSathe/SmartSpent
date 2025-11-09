@@ -10,7 +10,7 @@ class Expense(Base):
 
     id = Column(Integer, primary_key = True, index = True)
     expense_name = Column(String(220), nullable = False)
-    amount = Column(float, nullable = False)
+    amount = Column(Float, nullable = False)
     catagory = Column(String(100), nullable = False)
     predicted_category = Column(String(100), nullable = True)
     confidence = Column(Float, nullable = True)
@@ -21,24 +21,24 @@ class Expense(Base):
 class CategoryBudget(Base):
     __tablename__ = "Category_Budgets"
 
-    id = Column(Integer, primary_key = True, Index = True)
-    category = Column(String, Unique = True, nullable = False) 
+    id = Column(Integer, primary_key = True, index = True)
+    category = Column(String, unique = True, nullable = False) 
     monthly_budget = Column(Float, nullable = False, default = 0.0)
-    created_at = Column(DateTime(timezone = True)), server_default = func.now()
+    created_at = Column(DateTime(timezone = True),  server_default = func.now())
 
 class OverallBudget(Base):
     __tablename__ = "Overall_Budgets"
 
     id =Column(Integer, primary_key = True, default = 1)
-    monthly_budget = Column(float, default = 0.0)
-    monthly_income = Column(float, default = 0.0)
+    monthly_budget = Column(Float, default = 0.0)
+    monthly_income = Column(Float, default = 0.0)
     created_at = Column(DateTime(timezone = True), server_default = func.now())
     updated_at = Column(DateTime(timezone = True), onupdate = func.now())
 
 class LearningCorrection(Base):
     __tablename__ = "learning_Correction"
 
-    id = Column(Integer, primary_key = True, Index = True)
+    id = Column(Integer, primary_key = True, index = True)
     expense_text = Column(Text, nullable = False)
     original_prediction = Column(String(100))
     corrected_category = Column(String(100))
@@ -46,5 +46,5 @@ class LearningCorrection(Base):
 
 # Pre-populate catrgories
 DEFAULT_CATEGORIES = [
-    "Food", "Transport", "Shopping", "Entertainment", "Bills", "Healthcare", "Education", "Travel", "Groceries", "Personal Care", "Others" 
+    "Food", "Drinks", "Transport", "Shopping", "Entertainment", "Bills", "Healthcare", "Education", "Travel", "Groceries", "Personal Care", "Others" 
 ]

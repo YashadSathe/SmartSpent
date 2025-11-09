@@ -3,12 +3,12 @@ from typing import Optional, List
 from datetime import datetime
 
 # Expense Schemas
-class ExpenseSchemas(BaseModel):
+class ExpenseBase(BaseModel):
     expense_name: str
     amount: float
-    categort: Optional[str] = None
+    category: Optional[str] = None
 
-class ExpenseCrate(ExpenseBase):
+class ExpenseCreate(ExpenseBase):
     pass
 
 class ExpenseUpdate(BaseModel):
@@ -38,7 +38,7 @@ class CategoryBudgetBase(BaseModel):
 
 class CategorybudgetBase(BaseModel):
     id: int
-    createed_at: datetime
+    created_at: datetime
 
     class Config:
         orm_mode = True
@@ -49,7 +49,7 @@ class ClassificationRequest(BaseModel):
 
 
 class ClassificationResponse(BaseModel):
-    catrgory: str
+    category: str
     confidence: float
     suggested_categories: list[str] = []
 

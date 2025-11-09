@@ -6,42 +6,38 @@ class RuleBasedClassifier:
             "Food": [
                 "pizza", "burger", "restaurant", "cafe", "meal", "food", "dinner", "lunch", "breakfast", "eat", "pav bhaji", "dominos", "mcdonalds", "kfc", "subway", "food court", "dining"
             ],
-              "Transport": [
-                "uber", "ola", "taxi", "bus", "train", "metro", "fuel",
-                "petrol", "diesel", "auto", "rickshaw", "travel", "commute",
-                "railway", "airport", "cab", "ride"
+            "Drinks": [
+                 "coffee", "tea", "beer", "alcohol", "wine", "whisky", "vodka", "juice", "soda", "coke", "pepsi", "slushie", "smoothie", "bubble tea", "starbucks", "cafe", "bar", "pub" "brewery", "water", "drink", "beverage"
+            ],
+            "Transport": [
+                "uber", "ola", "taxi", "bus", "train", "metro", "fuel", "petrol", "diesel", "auto", "rickshaw", "travel", "commute", "railway", "airport", "cab", "ride"
             ],
             "Shopping": [
-                "amazon", "flipkart", "myntra", "shop", "purchase", "buy",
-                "mall", "market", "shopping", "order", "online", "store"
+                "amazon", "flipkart", "myntra", "shop", "purchase", "buy", "mall", "market", "shopping", "order", "online", "store"
             ],
             "Entertainment": [
-                "netflix", "movie", "cinema", "game", "concert", "theater",
-                "streaming", "spotify", "youtube", "prime", "music", "film"
+                "netflix", "movie", "cinema", "game", "concert", "theater", "streaming", "spotify", "youtube", "prime", "music", "film"
             ],
             "Bills": [
-                "electricity", "internet", "water", "bill", "subscription",
-                "mobile", "phone", "broadband", "utility", "rent", "maintenance"
+                "electricity", "internet", "water", "bill", "subscription", "mobile", "phone", "broadband", "utility", "rent", "maintenance"
             ],
             "Healthcare": [
-                "hospital", "medical", "medicine", "doctor", "pharmacy",
-                "clinic", "checkup", "health", "dental", "insurance"
+                "hospital", "medical", "medicine", "doctor", "pharmacy", "clinic", "checkup", "health", "dental", "insurance"
             ],
             "Education": [
-                "book", "course", "college", "tuition", "stationery",
-                "university", "study", "education", "school", "coaching"
+                "book", "course", "college", "tuition", "stationery", "university", "study", "education", "school", "coaching"
             ],
             "Travel": [
-                "flight", "hotel", "vacation", "trip", "holiday", "tour",
-                "booking", "resort", "travel", "tourism"
+                "flight", "hotel", "vacation", "trip", "holiday", "tour", "booking", "resort", "travel", "tourism"
             ],
             "Groceries": [
-                "grocery", "vegetable", "fruit", "milk", "bread", "eggs",
-                "bigbasket", "grofers", "supermarket", "kirana", "provisions"
+                "grocery", "vegetable", "fruit", "milk", "bread", "eggs", "bigbasket", "grofers", "supermarket", "kirana", "provisions"
             ],
             "Personal Care": [
-                "salon", "haircut", "shampoo", "soap", "cosmetic", "beauty",
-                "spa", "massage", "gym", "fitness", "skincare"
+                "salon", "haircut", "shampoo", "soap", "cosmetic", "beauty", "spa", "massage", "gym", "fitness", "skincare"
+            ],
+            "Drinks": [
+                "coffee"
             ]
         }
     
