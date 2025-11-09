@@ -7,7 +7,7 @@ class RuleBasedClassifier:
                 "pizza", "burger", "restaurant", "cafe", "meal", "food", "dinner", "lunch", "breakfast", "eat", "pav bhaji", "dominos", "mcdonalds", "kfc", "subway", "food court", "dining"
             ],
             "Drinks": [
-                 "coffee", "tea", "beer", "alcohol", "wine", "whisky", "vodka", "juice", "soda", "coke", "pepsi", "slushie", "smoothie", "bubble tea", "starbucks", "cafe", "bar", "pub" "brewery", "water", "drink", "beverage"
+                 "coffee", "tea", "beer", "alcohol", "wine", "whisky", "vodka", "juice", "soda", "coke", "pepsi", "slushie", "smoothie", "bubble tea", "starbucks", "cafe", "bar", "pub", "brewery", "water", "drink", "beverage"
             ],
             "Transport": [
                 "uber", "ola", "taxi", "bus", "train", "metro", "fuel", "petrol", "diesel", "auto", "rickshaw", "travel", "commute", "railway", "airport", "cab", "ride"
@@ -35,9 +35,6 @@ class RuleBasedClassifier:
             ],
             "Personal Care": [
                 "salon", "haircut", "shampoo", "soap", "cosmetic", "beauty", "spa", "massage", "gym", "fitness", "skincare"
-            ],
-            "Drinks": [
-                "coffee"
             ]
         }
     

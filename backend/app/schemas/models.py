@@ -11,7 +11,7 @@ class Expense(Base):
     id = Column(Integer, primary_key = True, index = True)
     expense_name = Column(String(220), nullable = False)
     amount = Column(Float, nullable = False)
-    catagory = Column(String(100), nullable = False)
+    category = Column(String(100), nullable = False)
     predicted_category = Column(String(100), nullable = True)
     confidence = Column(Float, nullable = True)
     user_corrected = Column(Boolean, default = False)
@@ -36,7 +36,7 @@ class OverallBudget(Base):
     updated_at = Column(DateTime(timezone = True), onupdate = func.now())
 
 class LearningCorrection(Base):
-    __tablename__ = "learning_Correction"
+    __tablename__ = "learning_correction"
 
     id = Column(Integer, primary_key = True, index = True)
     expense_text = Column(Text, nullable = False)

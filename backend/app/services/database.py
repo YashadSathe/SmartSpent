@@ -8,7 +8,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./expense_tracker.db"
 # Create Engine
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_agrs = {"check_same-thread": False}
+    connect_args = {"check_same-thread": False}
 )
 
 # Local Sessiom
@@ -23,7 +23,7 @@ def get_db():
     finally:
         db.close()
 
-# cleate table and initialize data
+# create table and initialize data
 def create_tables():
     Base.metadata.create.all(bind = engine)
 
@@ -36,10 +36,10 @@ def create_tables():
             existing = db.query(CategoryBudget).filter(CategoryBudget.category == category).first()
 
             if not existing:
-                db_catergory = CategoryBudget(category = category, monthly_budget = 0)
-                db.add(db_catergory)
+                db_category = CategoryBudget(category = category, monthly_budget = 0)
+                db.add(db_category)
 
-        db.commit
+        db.commit()
         print("Database tables created and initialized with default categories")
 
     except Exception as e:
@@ -48,4 +48,3 @@ def create_tables():
     
     finally:
         db.close()
-

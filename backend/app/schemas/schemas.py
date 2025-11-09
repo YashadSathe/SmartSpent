@@ -16,11 +16,11 @@ class ExpenseUpdate(BaseModel):
     amount: float
     category: Optional[str] = None
 
-class Expenseresponse(BaseModel):
+class ExpenseResponse(BaseModel):
     id: int
     predicted_category: Optional[str] = None
     confidence: Optional[str] = None
-    user_correected: bool
+    user_corrected: bool
     created_at:datetime
 
     class Config:
@@ -36,7 +36,7 @@ class CategoryBudgetBase(BaseModel):
     category: str
     monthly_budget: float
 
-class CategorybudgetBase(BaseModel):
+class CategorybudgetBase(CategoryBudgetBase):
     id: int
     created_at: datetime
 
