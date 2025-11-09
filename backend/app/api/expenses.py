@@ -29,7 +29,8 @@ def create_expense(
         amount=expense.amount,
         category=expense.category,
         predicted_category=predicted_category,
-        confidence=confidence
+        confidence=confidence,
+        user_corrected=False
     )
     
     db.add(db_expense)

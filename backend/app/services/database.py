@@ -2,6 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.schemas.models import Base, CategoryBudget,    DEFAULT_CATEGORIES
 
+print("--- RUNNING NEW DATABASE.PY FILE ---")
+
 # SQLite Database URl
 SQLALCHEMY_DATABASE_URL = "sqlite:///./expense_tracker.db"
 

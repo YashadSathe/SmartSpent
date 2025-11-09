@@ -5,7 +5,6 @@ python-multipart==0.0.6
 
 # Database
 sqlalchemy==1.4.46
-databases[sqlite]==0.7.0
 
 # Data Validation
 pydantic==1.10.12
