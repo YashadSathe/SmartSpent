@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 import datetime
 
-Base = declarative_base
+Base = declarative_base()
 
 class Expense(Base):
     __tablename__ = "Expenses"

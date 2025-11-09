@@ -8,7 +8,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./expense_tracker.db"
 # Create Engine
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args = {"check_same-thread": False}
+    connect_args={"check_same-thread": False}
 )
 
 # Local Sessiom
@@ -25,7 +25,7 @@ def get_db():
 
 # create table and initialize data
 def create_tables():
-    Base.metadata.create.all(bind = engine)
+    Base.metadata.create_all(bind = engine)
 
     # Initialize default category budget
     db = SessionLocal()

@@ -36,7 +36,7 @@ class CategoryBudgetBase(BaseModel):
     category: str
     monthly_budget: float
 
-class CategorybudgetBase(CategoryBudgetBase):
+class CategoryBudgetResponse(CategoryBudgetBase):
     id: int
     created_at: datetime
 
@@ -73,4 +73,4 @@ class CategorySpending(BaseModel):
 class MonthlySpending(BaseModel):
     month: str
     total_spent: float
-    savings_rate: float
+    savings_rate: float 
