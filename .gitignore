@@ -3,11 +3,12 @@ __pycache__/
 *.pyc
 
 # Environment files
-# *.env
-# backend/.env
+*.env
+backend/.env
 
 # Build or generated output
 SmartSpent
+backend/SmartSpent
 
 # Logs
 logs

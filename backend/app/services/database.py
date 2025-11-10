@@ -10,7 +10,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./expense_tracker.db"
 # Create Engine
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same-thread": False}
+    connect_args={"check_same_thread": False}
 )
 
 # Local Sessiom
