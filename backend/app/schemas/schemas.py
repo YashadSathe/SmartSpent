@@ -16,7 +16,7 @@ class ExpenseUpdate(BaseModel):
     amount: float
     category: Optional[str] = None
 
-class ExpenseResponse(BaseModel):
+class ExpenseResponse(ExpenseBase):
     id: int
     predicted_category: Optional[str] = None
     confidence: Optional[str] = None
