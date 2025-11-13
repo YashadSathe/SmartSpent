@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.services.database import get_db, create_tables
 from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
-from app.api import expenses, classification, budget, dashboard
+from app.api import expenses, classification, budget, dashboard, training
 
 
 app = FastAPI(
@@ -29,6 +29,7 @@ app.include_router(expenses.router)
 app.include_router(classification.router)
 app.include_router(budget.router)
 app.include_router(dashboard.router)
+app.include_router(training.router)
 
 # Initialize classifier
 classifier = RuleBasedClassifier()
