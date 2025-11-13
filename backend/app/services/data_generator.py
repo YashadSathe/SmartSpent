@@ -82,7 +82,7 @@ class TrainingDataGenerator:
             prompt = self._build_generation_prompt(category, examples_per_category)
             
             payload = {
-                "model": "llama2",  # or "mistral", "codellama" based on what you have
+                "model": "mistral",
                 "prompt": prompt,
                 "stream": False
             }

@@ -52,9 +52,9 @@ class TrainingDataCollector:
             training_data = []
             for correction in corrections:
                 training_data.append({
-                    "text": corrections.expense_text,
-                    "label": corrections.corrected_category,
-                    "original_prediction": corrections.original_predictions,
+                    "text": correction.expense_text,
+                    "label": correction.corrected_category,
+                    "original_prediction": correction.original_predictions,
                     "timestamp": correction.learned_at.isoformat() + "Z"
                 })
 
