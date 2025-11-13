@@ -9,7 +9,7 @@ from app.schemas.models import LearningCorrection
 logger = logging.getLogger(__name__)
 
 # collect training data from user for ML training
-class trainingDataCollector:
+class TrainingDataCollector:
     def __init__(self, db: Session):
         self.db = db
         self.training_file = "training_data/expense_classification.jsonl"
@@ -55,7 +55,7 @@ class trainingDataCollector:
                     "text": corrections.expense_text,
                     "label": corrections.corrected_category,
                     "original_prediction": corrections.original_predictions,
-                    "timestamp": datetime.now().isoformat + "Z"
+                    "timestamp": correction.learned_at.isoformat() + "Z"
                 })
 
             return training_data
