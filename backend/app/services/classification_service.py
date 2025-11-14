@@ -148,6 +148,11 @@ class HybridClassificationService:
             }
         }
     
+    def reload_model(self):
+        """Forces the classifier to reload the model from disk."""
+        logger.info(f"Reloading model from {self.model_path}...")
+        self._load_model()
+
     def batch_classify(self, expense_names: List[str], use_ml: bool = True) -> List[Dict[str, Any]]:
         """Classify multiple expenses efficiently"""
         results = []

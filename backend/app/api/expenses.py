@@ -6,18 +6,16 @@ from app.services.classification_service import HybridClassificationService
 from app.services.database import get_db
 from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
+from app.main import get_hybrid_classifier
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
-classifier = RuleBasedClassifier()
 
 @router.post("/", response_model=schemas.ExpenseResponse)
 def create_expense(
     expense: schemas.ExpenseCreate, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
 ):
-    
-    # Use hybrid classification service instead of just rule-based
-    classification_service = HybridClassificationService(db)
 
     # Auto-classify if category not provided
     predicted_category = None
@@ -25,7 +23,7 @@ def create_expense(
     used_ml = False
     
     if not expense.category and expense.expense_name:
-        classification_result = classification_service.classify(expense.expense_name)
+        classification_result = classifier.classify(expense.expense_name)
         predicted_category = classification_result["final_category"]
         confidence = classification_result["final_confidence"]
         used_ml = classification_result["used_ml"]

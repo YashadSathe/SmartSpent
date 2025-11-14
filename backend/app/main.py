@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 from typing import List
 import datetime
 from fastapi.middleware.cors import CORSMiddleware
-from app.services.database import get_db, create_tables
+from app.services.database import get_db, create_tables, SessionLocal
 from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
 from app.api import expenses, classification, budget, dashboard, training
+from app.services.classification_service import HybridClassificationService
 
 
 app = FastAPI(
@@ -18,11 +19,19 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # React frontend
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+db_session = SessionLocal()
+classifier_service_instance = HybridClassificationService(db_session)
+db_session.close()
+
+def get_hybrid_classifier():
+    """FastAPI dependency to get the shared classifier instance."""
+    return classifier_service_instance
 
 # Include routers
 app.include_router(expenses.router)

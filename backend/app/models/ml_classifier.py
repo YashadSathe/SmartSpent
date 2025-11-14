@@ -1,7 +1,7 @@
 import logging
 import torch
-from transformers import AutoTokenizer, AutoModelforSequenceClassification
-from typing import Tuple, Dict, Any
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from typing import Tuple, Dict,List ,Any
 import os
 
 logger = logging.getlogger(__name__)
@@ -17,12 +17,12 @@ class MLExpenseClassifier:
         self._load_model()
 
     # load fine tuned model
-    def load_model(self):
+    def _load_model(self):
         try:
             if os.path.exists(self.model_path):
                 logger.info(f"Loading fine-tuned model from {self.model_path}")
                 self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
-                self.model = AutoModelforSequenceClassification.from_pretrained(self.model_path)
+                self.model = AutoModelForSequenceClassification.from_pretrained(self.model_path)
                 self.model.eval()  # Set to evaluation mode
                 logger.info("Fine-tuned model loaded successfully")
             else:
@@ -32,6 +32,11 @@ class MLExpenseClassifier:
         except Exception as e:
             logger.error(f"Failed to load ML model: {e}")
             self.model = None
+
+    def reload_model(self):
+        """Forces the classifier to reload the model from disk."""
+        logger.info(f"Reloading model from {self.model_path}...")
+        self._load_model()
     
     def is_available(self) -> bool:
         """Check if ML model is available"""

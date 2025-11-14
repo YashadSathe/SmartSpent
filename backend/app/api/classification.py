@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
-
+from app.main import get_hybrid_classifier
 from app.services.database import get_db
 from app.services.classification_service import HybridClassificationService
 from app.schemas import schemas
@@ -10,13 +10,12 @@ router = APIRouter(prefix="/api/classification", tags=["classification"])
 
 @router.post("/predict", response_model=schemas.ClassificationResponse)
 def classify_expense(
-    request: schemas.ClassificationRequest, 
-    db: Session = Depends(get_db)
+    request: schemas.ClassificationRequest,
+    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
 ):
     """Classify expense with hybrid ML + rule-based approach"""
     try:
-        classification_service = HybridClassificationService(db)
-        result = classification_service.classify(request.expense_name)
+        result = classifier.classify(request.expense_name)
         
         return schemas.ClassificationResponse(
             category=result["final_category"],
@@ -36,13 +35,12 @@ def classify_expense(
 @router.post("/batch-predict")
 def batch_classify_expenses(
     requests: List[schemas.ClassificationRequest],
-    db: Session = Depends(get_db)
+    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
 ):
     """Classify multiple expenses at once"""
     try:
-        classification_service = HybridClassificationService(db)
         expense_names = [req.expense_name for req in requests]
-        results = classification_service.batch_classify(expense_names)
+        results = classifier.classify(expense_names)
         
         return {
             "success": True,
@@ -56,7 +54,8 @@ def batch_classify_expenses(
 @router.post("/record-correction")
 def record_correction(
     correction_data: dict,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
 ):
     """Record when user corrects AI classification"""
     try:
@@ -79,8 +78,8 @@ def record_correction(
 def get_classifier_info(db: Session = Depends(get_db)):
     """Get information about the classification system"""
     try:
-        classification_service = HybridClassificationService(db)
-        info = classification_service.get_classifier_info()
+        classifier: HybridClassificationService = Depends(get_hybrid_classifier)
+        info = classifier.get_classifier_info()
         
         return {
             "success": True,
@@ -91,22 +90,20 @@ def get_classifier_info(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Failed to get classifier info: {str(e)}")
 
 @router.get("/categories")
-def get_all_categories(db: Session = Depends(get_db)):
+def get_all_categories(classifier: HybridClassificationService = Depends(get_hybrid_classifier)):
     """Get all available categories"""
     try:
-        classification_service = HybridClassificationService(db)
-        categories = classification_service.rule_classifier.get_suggested_categories()
+        categories = classifier.rule_classifier.get_suggested_categories()
         
         return {"categories": categories}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/category-keywords/{category}")
-def get_category_keywords(category: str, db: Session = Depends(get_db)):
+def get_category_keywords(category: str, classifier: HybridClassificationService = Depends(get_hybrid_classifier)):
     """Get keywords for a specific category"""
     try:
-        classification_service = HybridClassificationService(db)
-        keywords = classification_service.rule_classifier.get_category_keywords(category)
+        keywords = classifier.rule_classifier.get_category_keywords(category)
         
         return {"category": category, "keywords": keywords}
     except Exception as e:
