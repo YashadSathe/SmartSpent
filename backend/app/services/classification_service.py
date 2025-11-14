@@ -4,6 +4,7 @@ from app.models.rule_engine import RuleBasedClassifier
 from app.models.ml_classifier import MLExpenseClassifier
 from app.services.training_data import TrainingDataCollector
 
+
 logger = logging.getLogger(__name__)
 
 class HybridClassificationService:
@@ -14,9 +15,9 @@ class HybridClassificationService:
     3. Learning from user corrections
     """
     
-    def __init__(self, db_session):
+    def __init__(self, db_session, ml_classifier: MLExpenseClassifier):
         self.rule_classifier = RuleBasedClassifier()
-        self.ml_classifier = MLExpenseClassifier()
+        self.ml_classifier = ml_classifier
         self.training_collector = TrainingDataCollector(db_session)
         self.ml_confidence_threshold = 0.7  # Use ML if confidence >= 70%
     
@@ -149,10 +150,11 @@ class HybridClassificationService:
         }
     
     def reload_model(self):
-        """Forces the classifier to reload the model from disk."""
-        logger.info(f"Reloading model from {self.model_path}...")
-        self._load_model()
-
+        """Reloads the underlying ML model from disk."""
+        if self.ml_classifier:
+            self.ml_classifier.reload_model()
+            logging.info("Hybrid service: ML model reloaded.")
+    
     def batch_classify(self, expense_names: List[str], use_ml: bool = True) -> List[Dict[str, Any]]:
         """Classify multiple expenses efficiently"""
         results = []

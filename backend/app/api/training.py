@@ -8,7 +8,8 @@ from app.services.training_data import TrainingDataCollector
 from app.services.classification_service import HybridClassificationService
 from app.services.data_generator import TrainingDataGenerator
 from app.services.classification_service import get_hybrid_classifier, HybridClassificationService
-from app.main import get_hybrid_classifier
+from app.main import get_ml_classifier
+from app.models.ml_classifier import MLExpenseClassifier
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/training", tags=["training"])
@@ -37,7 +38,7 @@ def start_training(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     epochs: int = 10,
-    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
+    ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)
 ):
     """
     Start model training with collected data
@@ -59,7 +60,7 @@ def start_training(
             train_model_background,
             training_data,
             epochs,
-            classifier
+            ml_classifier
         )
         
         return {
@@ -77,10 +78,11 @@ def start_training(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/model-info")
-def get_model_info(db: Session = Depends(get_db), classifier: HybridClassificationService = Depends(get_hybrid_classifier)):
+def get_model_info(db: Session = Depends(get_db), ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)):
     """Get information about the current ML model"""
     try:
-        classifier_info = classifier.get_classifier_info()
+        classification_service = HybridClassificationService(db, ml_classifier)
+        classifier_info = classification_service.get_classifier_info()
         
         # Get training stats
         collector = TrainingDataCollector(db)
@@ -102,7 +104,7 @@ def retrain_if_ready(
     db: Session = Depends(get_db),
     min_examples: int = 20,
     epochs: int = 8,
-    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
+    ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)
 ):
     """
     Check if we have enough new data and retrain if ready
@@ -117,9 +119,9 @@ def retrain_if_ready(
                 train_model_background,
                 training_data,
                 epochs,
-                classifier
+                ml_classifier
             )
-            
+
             return {
                 "success": True,
                 "message": f"Started retraining with {len(training_data)} examples",
@@ -138,7 +140,7 @@ def retrain_if_ready(
         logger.error(f"Failed to check retraining: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-def train_model_background(training_data: list, epochs: int, classifier_service: HybridClassificationService):
+def train_model_background(training_data: list, epochs: int, ml_classifier: MLExpenseClassifier):
     """
     Background task for model training
     This runs separately from the API request
@@ -152,7 +154,7 @@ def train_model_background(training_data: list, epochs: int, classifier_service:
         if results["success"]:
             logger.info(f"Background training completed successfully: {results['eval_accuracy']:.3f} accuracy")
             logger.info("Reloading model in main application...")
-            classifier_service.reload_model()
+            ml_classifier.reload_model()    
         else:
             logger.error(f"Background training failed: {results.get('error', 'Unknown error')}")
             
@@ -193,7 +195,7 @@ def train_with_generated_data(
     examples_per_category: int = 50,
     epochs: int = 10,
     use_llm: str = "ollama",
-    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
+    ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)
 ):
     """Generate data and train model in one go"""
     try:
@@ -202,7 +204,7 @@ def train_with_generated_data(
             examples_per_category,
             epochs,
             use_llm,
-            classifier
+            ml_classifier
         )
         
         return {
@@ -226,7 +228,7 @@ def generate_data_background(examples_per_category: int, use_llm: str):
     except Exception as e:
         logger.error(f"Background data generation failed: {e}")
 
-def generate_and_train_background(examples_per_category: int, epochs: int, use_llm: str, classifier_service: HybridClassificationService):
+def generate_and_train_background(examples_per_category: int, epochs: int, use_llm: str, ml_classifier: MLExpenseClassifier):
     """Background task for generate + train pipeline"""
     try:
         # Generate data
@@ -240,7 +242,7 @@ def generate_and_train_background(examples_per_category: int, epochs: int, use_l
         if results["success"]:
             logger.info(f"Generate+train pipeline successful: {results['eval_accuracy']:.3f} accuracy")
             logger.info("Reloading model in main application...")
-            classifier_service.reload_model()
+            ml_classifier.reload_model()
         else:
             logger.error(f"Generate+train pipeline failed: {results.get('error')}")
             

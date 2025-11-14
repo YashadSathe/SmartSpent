@@ -6,7 +6,8 @@ from app.services.classification_service import HybridClassificationService
 from app.services.database import get_db
 from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
-from app.main import get_hybrid_classifier
+from app.main import get_ml_classifier
+from app.models.ml_classifier import MLExpenseClassifier
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 
@@ -14,8 +15,10 @@ router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 def create_expense(
     expense: schemas.ExpenseCreate, 
     db: Session = Depends(get_db),
-    classifier: HybridClassificationService = Depends(get_hybrid_classifier)
+    ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)
 ):
+
+    classification_service = HybridClassificationService(db, ml_classifier)
 
     # Auto-classify if category not provided
     predicted_category = None
@@ -23,7 +26,7 @@ def create_expense(
     used_ml = False
     
     if not expense.category and expense.expense_name:
-        classification_result = classifier.classify(expense.expense_name)
+        classification_result = classification_service.classify(expense.expense_name)
         predicted_category = classification_result["final_category"]
         confidence = classification_result["final_confidence"]
         used_ml = classification_result["used_ml"]
@@ -48,7 +51,8 @@ def create_expense(
 def record_category_correction(
     expense_id: int,
     correction_data: dict,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)
 ):
     """Record when user corrects the category of an expense"""
     db_expense = db.query(models.Expense).filter(models.Expense.id == expense_id).first()
@@ -59,7 +63,7 @@ def record_category_correction(
         )
     
     # Record the correction for ML training
-    classification_service = HybridClassificationService(db)
+    classification_service = HybridClassificationService(db, ml_classifier)
     classification_service.record_correction(
         db_expense.expense_name,
         db_expense.predicted_category or db_expense.category,  # What AI predicted
@@ -78,7 +82,7 @@ def get_all_expenses(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    expenses = db.query(models.Expense).offset(skip).limit(limit).all()
+    expenses = db.query(models.Expense).order_by(models.Expense.created_at.desc()).offset(skip).limit(limit).all()
     return expenses
 
 @router.get("/current-month", response_model=List[schemas.ExpenseResponse])
