@@ -1,8 +1,8 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.services.model_trainer import ExpenseModelTrainer
-from app.services.data_generator import TrainingDataGenerator
+from services.model_trainer import ExpenseModelTrainer
+from services.data_generator import TrainingDataGenerator
 import json
 
 def quick_train(examples_per_category: int = 50, epochs: int = 10):

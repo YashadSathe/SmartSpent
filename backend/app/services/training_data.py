@@ -65,7 +65,7 @@ class TrainingDataCollector:
             return []
     
     # get statistics about training data(collected)
-    def get_training_status(self) -> Dict[str: Any]:
+    def get_training_stats(self) -> Dict[str, Any]:
         try:
             total_examples = self.db.query(LearningCorrection).count()
 

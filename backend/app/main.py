@@ -9,8 +9,7 @@ from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
 from app.api import expenses, classification, budget, dashboard, training
 from app.services.classification_service import HybridClassificationService
-from functools import lru_cache
-from app.models.ml_classifier import MLExpenseClassifier    
+from app.dependencies import get_hybrid_classifier_service  
 
 app = FastAPI(
     title="Expense Tracker API", 
@@ -30,14 +29,6 @@ db_session = SessionLocal()
 classifier_service_instance = HybridClassificationService(db_session)
 db_session.close()
 
-@lru_cache()
-def get_ml_classifier():
-    """
-    FastAPI dependency to get the shared ML classifier instance.
-    lru_cache ensures this function runs only once.
-    """
-    return MLExpenseClassifier()
-
 # Include routers
 app.include_router(expenses.router)
 app.include_router(classification.router)
@@ -52,6 +43,7 @@ classifier = RuleBasedClassifier()
 @app.on_event("startup")
 def on_startup():
     create_tables()
+    get_hybrid_classifier_service()
 
 # Health check
 @app.get("/")

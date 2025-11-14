@@ -6,8 +6,9 @@ from app.services.classification_service import HybridClassificationService
 from app.services.database import get_db
 from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
-from app.main import get_ml_classifier
-from app.models.ml_classifier import MLExpenseClassifier
+
+# Import the new dependency
+from app.dependencies import get_hybrid_classifier_service
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 
@@ -15,18 +16,18 @@ router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 def create_expense(
     expense: schemas.ExpenseCreate, 
     db: Session = Depends(get_db),
-    ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)
+    # Use the new singleton service
+    classifier: HybridClassificationService = Depends(get_hybrid_classifier_service)
 ):
-
-    classification_service = HybridClassificationService(db, ml_classifier)
-
+    
     # Auto-classify if category not provided
     predicted_category = None
     confidence = None
     used_ml = False
     
     if not expense.category and expense.expense_name:
-        classification_result = classification_service.classify(expense.expense_name)
+        # Use the singleton classifier
+        classification_result = classifier.classify(expense.expense_name)
         predicted_category = classification_result["final_category"]
         confidence = classification_result["final_confidence"]
         used_ml = classification_result["used_ml"]
@@ -52,7 +53,8 @@ def record_category_correction(
     expense_id: int,
     correction_data: dict,
     db: Session = Depends(get_db),
-    ml_classifier: MLExpenseClassifier = Depends(get_ml_classifier)
+    # Get the singleton ML model, not the whole service
+    classifier: HybridClassificationService = Depends(get_hybrid_classifier_service)
 ):
     """Record when user corrects the category of an expense"""
     db_expense = db.query(models.Expense).filter(models.Expense.id == expense_id).first()
@@ -62,9 +64,12 @@ def record_category_correction(
             detail="Expense not found"
         )
     
+    # Create a new service instance *with this request's DB session*
+    # to safely write to the database.
+    correction_service = HybridClassificationService(db, classifier.ml_classifier)
+    
     # Record the correction for ML training
-    classification_service = HybridClassificationService(db, ml_classifier)
-    classification_service.record_correction(
+    correction_service.record_correction(
         db_expense.expense_name,
         db_expense.predicted_category or db_expense.category,  # What AI predicted
         correction_data["corrected_category"]  # What user set it to

@@ -82,7 +82,7 @@ class TrainingDataGenerator:
             prompt = self._build_generation_prompt(category, examples_per_category)
             
             payload = {
-                "model": "mistral",
+                "model": "gemma:2b",
                 "prompt": prompt,
                 "stream": False
             }

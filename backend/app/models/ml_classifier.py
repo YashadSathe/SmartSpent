@@ -4,7 +4,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from typing import Tuple, Dict,List ,Any
 import os
 
-logger = logging.getlogger(__name__)
+logger = logging.getLogger(__name__)
 
 class MLExpenseClassifier:
     def __init__(self, model_path = None):
