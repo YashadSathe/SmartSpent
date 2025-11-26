@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -19,21 +19,19 @@ class ExpenseUpdate(BaseModel):
 class ExpenseResponse(ExpenseBase):
     id: int
     predicted_category: Optional[str] = None
-    confidence: Optional[str] = None
+    confidence: Optional[float] = None # Changed to float for correctness
     user_corrected: bool
-    created_at:datetime
+    created_at: datetime
 
-    class Config:
-        orm_mode = True
+    # Pydantic v2 Configuration
+    model_config = ConfigDict(from_attributes=True)
 
-# budget Schemas
-
+# Budget Schemas
 class BudgetBase(BaseModel):
     monthly_budget: float
     monthly_income: float
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CategoryBudgetBase(BaseModel):
     category: str
@@ -43,21 +41,18 @@ class CategoryBudgetResponse(CategoryBudgetBase):
     id: int
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Classification Schemas
 class ClassificationRequest(BaseModel):
     expense_name: str
 
-
 class ClassificationResponse(BaseModel):
     category: str
     confidence: float
-    suggested_categories: list[str] = []
+    suggested_categories: List[str] = []
 
 # Dashboard Schemas
-
 class DashboardSummary(BaseModel):
     total_spent: float
     total_budget: float
@@ -78,6 +73,7 @@ class MonthlySpending(BaseModel):
     total_spent: float
     savings_rate: float 
 
+# Receipt Schemas (For Scanning)
 class ReceiptItem(BaseModel):
     item_name: str
     amount: float

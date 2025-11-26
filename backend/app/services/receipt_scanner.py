@@ -1,6 +1,5 @@
 import base64
 import os
-from typing import Optional
 from langchain_core.messages import HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.schemas.schemas import ReceiptExtraction
@@ -9,6 +8,8 @@ class ReceiptScannerService:
     def __init__(self):
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
+            # Logs to console to help you debug
+            print("CRITICAL ERROR: GOOGLE_API_KEY not found.")
             raise ValueError("GOOGLE_API_KEY environment variable is not set")
             
         self.llm = ChatGoogleGenerativeAI(
@@ -17,10 +18,11 @@ class ReceiptScannerService:
             google_api_key=api_key
         )
         
+        # This function works perfectly with Pydantic v2
         self.structured_llm = self.llm.with_structured_output(ReceiptExtraction)
 
     def scan_receipt(self, image_bytes: bytes) -> ReceiptExtraction:
-        # Encode image for the API
+        # Encode image
         image_data = base64.b64encode(image_bytes).decode("utf-8")
         
         message = HumanMessage(
@@ -35,6 +37,5 @@ class ReceiptScannerService:
                 },
             ]
         )
-        
-        # Invoke Gemini
+
         return self.structured_llm.invoke([message])

@@ -161,7 +161,6 @@ async def upload_receipt(
     db: Session = Depends(get_db),
     classifier: HybridClassificationService = Depends(get_hybrid_classifier_service)
 ):
-    # Scans a receipt image, extracts items using Gemini, classifies them using debetta model, and saves them.
     try:
         contents = await file.read()
         
@@ -171,9 +170,17 @@ async def upload_receipt(
         
         saved_expenses = []
         
-        # 3. Process each extracted item
+        # Handle Date Parsing
+        expense_date = datetime.datetime.now()
+        if extraction.date:
+            try:
+                # Simple ISO format parser
+                expense_date = datetime.datetime.fromisoformat(str(extraction.date).replace('Z', ''))
+            except Exception:
+                pass
+        
+        # Process items
         for item in extraction.items:
-
             classification = classifier.classify(item.item_name)
             
             new_expense = models.Expense(
@@ -182,8 +189,7 @@ async def upload_receipt(
                 category=classification["final_category"],
                 predicted_category=classification["final_category"],
                 confidence=classification["final_confidence"],
-                # Use extraction date if found, else today
-                created_at=extraction.date if extraction.date else datetime.datetime.now()
+                created_at=expense_date
             )
             
             db.add(new_expense)
@@ -198,4 +204,5 @@ async def upload_receipt(
         }
         
     except Exception as e:
+        print(f"UPLOAD ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Receipt scanning failed: {str(e)}")
