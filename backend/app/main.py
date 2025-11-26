@@ -32,21 +32,17 @@ app.include_router(budget.router)
 app.include_router(dashboard.router)
 app.include_router(training.router)
 
-# Initialize classifier (This is just for the old commented-out code, can be left)
+# Initialize classifier
 classifier = RuleBasedClassifier()
 
 # Create tables on startup
 @app.on_event("startup")
 def on_startup():
     create_tables()
-    # This line "warms up" the singleton instances on server start
+
     get_hybrid_classifier_service()
 
 # Health check
 @app.get("/")
 def read_root():
     return {"message": "Expense Tracker API is running!"}
-
-# ---
-# All your old commented-out code remains commented out
-# ---

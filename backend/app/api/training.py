@@ -6,7 +6,7 @@ from app.services.database import get_db
 from app.services.model_trainer import ExpenseModelTrainer
 from app.services.training_data import TrainingDataCollector
 from app.services.classification_service import HybridClassificationService
-from app.services.data_generator import TrainingDataGenerator
+
 
 # --- THIS IS THE FIX ---
 # We now import from the new 'dependencies.py' file, not 'main.py'
@@ -170,96 +170,3 @@ def train_model_background(training_data: list, epochs: int, classifier_service:
             
     except Exception as e:
         logger.error(f"Background training error: {e}")
-
-@router.post("/generate-data")
-def generate_training_data(
-    background_tasks: BackgroundTasks,
-    examples_per_category: int = 50,
-    use_llm: str = "ollama"
-):
-    """Generate synthetic training data"""
-    try:
-        generator = TrainingDataGenerator()
-        
-        # Generate in background
-        background_tasks.add_task(
-            generate_data_background,
-            examples_per_category,
-            use_llm
-        )
-        
-        return {
-            "success": True,
-            "message": f"Started generating {examples_per_category} examples per category using {use_llm}",
-            "total_categories": len(generator.categories),
-            "expected_examples": examples_per_category * len(generator.categories)
-        }
-        
-    except Exception as e:
-        logger.error(f"Data generation failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/train-with-generated-data")
-def train_with_generated_data(
-    background_tasks: BackgroundTasks,
-    examples_per_category: int = 50,
-    epochs: int = 10,
-    use_llm: str = "ollama",
-    classifier: HybridClassificationService = Depends(get_hybrid_classifier_service)
-):
-    """Generate data and train model in one go"""
-    try:
-        background_tasks.add_task(
-            generate_and_train_background,
-            examples_per_category,
-            epochs,
-            use_llm,
-            classifier # <-- Pass the singleton service
-        )
-        
-        return {
-            "success": True,
-            "message": f"Started training with {examples_per_category} examples per category for {epochs} epochs",
-            "total_expected_examples": examples_per_category * 12,  # 12 categories
-            "training_epochs": epochs
-        }
-        
-    except Exception as e:
-        logger.error(f"Training with generated data failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-def generate_data_background(examples_per_category: int, use_llm: str):
-    """Background task for data generation"""
-    try:
-        generator = TrainingDataGenerator()
-        data = generator.generate_complete_dataset(examples_per_category, use_llm)
-        generator.save_generated_data(data, "auto_generated_dataset.json")
-        logger.info(f"Background data generation completed: {len(data)} examples")
-    except Exception as e:
-        logger.error(f"Background data generation failed: {e}")
-
-# Update the function signature
-def generate_and_train_background(examples_per_category: int, epochs: int, use_llm: str, classifier_service: HybridClassificationService):
-    """Background task for generate + train pipeline"""
-    try:
-        # Generate data
-        generator = TrainingDataGenerator()
-        data = generator.generate_complete_dataset(examples_per_category, use_llm)
-        
-        # Train model
-        trainer = ExpenseModelTrainer()
-        results = trainer.train_model(data, epochs)
-        
-        if results["success"]:
-            logger.info(f"Generate+train pipeline successful: {results['eval_accuracy']:.3f} accuracy")
-            
-            # --- THIS IS THE FIX ---
-            logger.info("Reloading ML model in main application...")
-            classifier_service.reload_model()
-            # -----------------------
-            
-        else:
-            logger.error(f"Generate+train pipeline failed: {results.get('error')}")
-            
-    except Exception as e:
-        logger.error(f"Generate+train pipeline failed: {e}")
