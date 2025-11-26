@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import datetime
@@ -6,11 +6,8 @@ from app.services.classification_service import HybridClassificationService
 from app.services.database import get_db
 from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
-
-# --- THIS IS THE FIX ---
-# We now import from the new 'dependencies.py' file, not 'main.py'
+from app.services.receipt_scanner import ReceiptScannerService
 from app.dependencies import get_hybrid_classifier_service
-# ---------------------
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 
@@ -66,8 +63,7 @@ def record_category_correction(
             detail="Expense not found"
         )
     
-    # Create a new service instance *with this request's DB session*
-    # to safely write to the database.
+    # Create a new service instance
     correction_service = HybridClassificationService(db, classifier.ml_classifier)
     
     # Record the correction for ML training
@@ -158,3 +154,48 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": "Expense deleted successfully"}
+
+@router.post("/upload-receipt", response_model=dict)
+async def upload_receipt(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    classifier: HybridClassificationService = Depends(get_hybrid_classifier_service)
+):
+    # Scans a receipt image, extracts items using Gemini, classifies them using debetta model, and saves them.
+    try:
+        contents = await file.read()
+        
+        # Extract data using Gemini
+        scanner = ReceiptScannerService()
+        extraction = scanner.scan_receipt(contents)
+        
+        saved_expenses = []
+        
+        # 3. Process each extracted item
+        for item in extraction.items:
+
+            classification = classifier.classify(item.item_name)
+            
+            new_expense = models.Expense(
+                expense_name=f"{extraction.merchant_name} - {item.item_name}",
+                amount=item.amount,
+                category=classification["final_category"],
+                predicted_category=classification["final_category"],
+                confidence=classification["final_confidence"],
+                # Use extraction date if found, else today
+                created_at=extraction.date if extraction.date else datetime.datetime.now()
+            )
+            
+            db.add(new_expense)
+            saved_expenses.append(new_expense)
+            
+        db.commit()
+        
+        return {
+            "message": f"Successfully processed receipt from {extraction.merchant_name}",
+            "items_count": len(saved_expenses),
+            "extracted_data": extraction
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Receipt scanning failed: {str(e)}")

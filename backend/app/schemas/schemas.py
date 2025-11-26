@@ -77,3 +77,12 @@ class MonthlySpending(BaseModel):
     month: str
     total_spent: float
     savings_rate: float 
+
+class ReceiptItem(BaseModel):
+    item_name: str
+    amount: float
+
+class ReceiptExtraction(BaseModel):
+    merchant_name: str
+    date: Optional[str] = None
+    items: List[ReceiptItem]
