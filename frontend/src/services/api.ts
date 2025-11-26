@@ -35,6 +35,19 @@ export const expenseApi = {
   // Delete expense
   delete: (id: number): Promise<void> => 
     api.delete(`/expenses/${id}`).then(res => res.data),
+
+  // Upload receipt/invoice
+  uploadReceipt: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await api.post('/expenses/upload-receipt', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
 // Classification API
