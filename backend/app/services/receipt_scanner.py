@@ -1,41 +1,79 @@
-import base64
 import os
-from langchain_core.messages import HumanMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+import json
+import base64
+import fitz  # PyMuPDF
+import google.generativeai as genai
 from app.schemas.schemas import ReceiptExtraction
 
 class ReceiptScannerService:
     def __init__(self):
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            # Logs to console to help you debug
-            print("CRITICAL ERROR: GOOGLE_API_KEY not found.")
-            raise ValueError("GOOGLE_API_KEY environment variable is not set")
+            print("CRITICAL: GOOGLE_API_KEY not set")
+            raise ValueError("GOOGLE_API_KEY not set")
             
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            temperature=0,
-            google_api_key=api_key
-        )
+        # 1. Configure Google SDK Directly (Bypassing LangChain)
+        genai.configure(api_key=api_key)
         
-        # This function works perfectly with Pydantic v2
-        self.structured_llm = self.llm.with_structured_output(ReceiptExtraction)
+        # 2. Use the model directly (No "langchain" wrapper to cause 404s)
+        self.model = genai.GenerativeModel('gemini-2.0-flash')
 
-    def scan_receipt(self, image_bytes: bytes) -> ReceiptExtraction:
-        # Encode image
-        image_data = base64.b64encode(image_bytes).decode("utf-8")
-        
-        message = HumanMessage(
-            content=[
-                {
-                    "type": "text", 
-                    "text": "Extract the merchant or vendor name, transaction date, and list of purchased items/services with prices from this image (receipt or invoice). Ignore tax and totals."
-                },
-                {
-                    "type": "image_url", 
-                    "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}
-                },
-            ]
-        )
+    def _convert_pdf_to_image(self, file_bytes: bytes) -> bytes:
+        try:
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            page = doc.load_page(0)
+            pix = page.get_pixmap()
+            return pix.tobytes("png")
+        except Exception as e:
+            print(f"PDF Conversion Error: {e}")
+            raise ValueError("Failed to convert PDF to image")
 
-        return self.structured_llm.invoke([message])
+    def scan_receipt(self, file_bytes: bytes) -> ReceiptExtraction:
+        try:
+            # 1. Prepare Image
+            is_pdf = file_bytes.startswith(b"%PDF")
+            if is_pdf:
+                print("📄 Processing PDF Invoice...")
+                image_data = self._convert_pdf_to_image(file_bytes)
+                mime_type = "image/png"
+            else:
+                print("📷 Processing Image Receipt...")
+                image_data = file_bytes
+                mime_type = "image/jpeg"
+
+            # 2. Prompt for JSON
+            prompt = """
+            Analyze this receipt/invoice. Extract the following data in valid JSON format:
+            {
+                "merchant_name": "Store Name",
+                "date": "YYYY-MM-DD",
+                "items": [
+                    {"item_name": "Item 1", "amount": 10.50}
+                ]
+            }
+            Rules:
+            - Ignore tax and subtotals.
+            - If date is missing, return null.
+            - Return ONLY the JSON object. No markdown.
+            """
+
+            # 3. Call Gemini
+            response = self.model.generate_content([
+                {'mime_type': mime_type, 'data': image_data},
+                prompt
+            ])
+
+            # 4. Clean Response
+            text = response.text.strip()
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1]
+                if text.endswith("```"):
+                    text = text[:-3]
+
+            # 5. Validate
+            data = json.loads(text)
+            return ReceiptExtraction(**data)
+
+        except Exception as e:
+            print(f"Scanning Failed: {str(e)}")
+            raise ValueError(f"AI Processing Failed: {str(e)}")
