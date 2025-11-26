@@ -8,8 +8,10 @@ from app.services.training_data import TrainingDataCollector
 from app.services.classification_service import HybridClassificationService
 from app.services.data_generator import TrainingDataGenerator
 
-# Import the new dependency
+# --- THIS IS THE FIX ---
+# We now import from the new 'dependencies.py' file, not 'main.py'
 from app.dependencies import get_hybrid_classifier_service
+# ---------------------
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/training", tags=["training"])

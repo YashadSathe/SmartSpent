@@ -7,8 +7,10 @@ from app.services.database import get_db
 from app.schemas import schemas, models
 from app.models.rule_engine import RuleBasedClassifier
 
-# Import the new dependency
+# --- THIS IS THE FIX ---
+# We now import from the new 'dependencies.py' file, not 'main.py'
 from app.dependencies import get_hybrid_classifier_service
+# ---------------------
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 
@@ -53,7 +55,7 @@ def record_category_correction(
     expense_id: int,
     correction_data: dict,
     db: Session = Depends(get_db),
-    # Get the singleton ML model, not the whole service
+    # Get the singleton service
     classifier: HybridClassificationService = Depends(get_hybrid_classifier_service)
 ):
     """Record when user corrects the category of an expense"""

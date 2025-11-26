@@ -1,20 +1,10 @@
-#!/usr/bin/env python3
-"""
-Standalone training script for fine-tuning the expense classification model
-Can be run independently of the main application
-"""
-
 import sys
 import os
 import logging
 import json
 from datetime import datetime
-
-# Add backend to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from app.services.model_trainer import ExpenseModelTrainer
-from app.services.data_generator import TrainingDataGenerator
 
 # Configure logging
 logging.basicConfig(
@@ -28,24 +18,16 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def load_training_data(data_source: str = "synthetic") -> list:
-    """Load training data from specified source"""
-    if data_source == "synthetic":
-        # Generate synthetic data
-        generator = TrainingDataGenerator()
-        data = generator.generate_complete_dataset(examples_per_category=80, use_llm="ollama")
-        generator.save_generated_data(data, "synthetic_dataset.json")
-        return data
-    elif data_source == "file":
-        # Load from existing file
-        try:
-            with open("training_data/synthetic_training_data.json", "r", encoding="utf-8") as f:
-                return json.load(f)
-        except FileNotFoundError:
-            logger.error("Training data file not found. Generate data first.")
-            return []
-    else:
-        logger.error(f"Unknown data source: {data_source}")
+def load_training_data():
+    """Load data from the static JSON file"""
+    file_path = "training_data/training_data.json"
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            print(f"✅ Loaded {len(data)} examples from {file_path}")
+            return data
+    except FileNotFoundError:
+        print(f"❌ Error: {file_path} not found. Please create it first.")
         return []
 
 def main():
@@ -62,7 +44,7 @@ def main():
     
     # Step 1: Load or generate training data
     logger.info("Loading training data...")
-    training_data = load_training_data(config["data_source"])
+    training_data = load_training_data()
     
     if not training_data:
         logger.error("No training data available. Exiting.")
@@ -70,13 +52,9 @@ def main():
     
     logger.info(f"Loaded {len(training_data)} training examples")
     
-    # Step 2: Initialize trainer
+    # Train the model
     trainer = ExpenseModelTrainer()
-    
-    # Step 3: Train the model
-    logger.info(f"Starting training with {len(training_data)} examples for {config['epochs']} epochs...")
-    
-    results = trainer.train_model(training_data, epochs=config["epochs"])
+    results = trainer.train_model(training_data, epochs=10)
     
     # Step 4: Report results
     if results["success"]:

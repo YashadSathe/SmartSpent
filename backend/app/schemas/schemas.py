@@ -32,6 +32,9 @@ class BudgetBase(BaseModel):
     monthly_budget: float
     monthly_income: float
 
+    class Config:
+        orm_mode = True
+
 class CategoryBudgetBase(BaseModel):
     category: str
     monthly_budget: float
